@@ -29,3 +29,30 @@ def test_signal_preview_abstains_without_verified_data():
     assert response.status_code == 200
     assert response.json()["direction"] == "NO_TRADE"
     assert response.json()["confidence"] == 0
+
+
+def test_candle_ohlc_integrity():
+    from datetime import UTC, datetime
+
+    from app.domain.market import Candle
+
+    valid = Candle(
+        symbol="EURUSD",
+        timeframe="1h",
+        timestamp=datetime.now(UTC),
+        open=1.08,
+        high=1.10,
+        low=1.07,
+        close=1.09,
+    )
+    invalid = Candle(
+        symbol="EURUSD",
+        timeframe="1h",
+        timestamp=datetime.now(UTC),
+        open=1.08,
+        high=1.085,
+        low=1.07,
+        close=1.09,
+    )
+    assert valid.validate_ohlc() is True
+    assert invalid.validate_ohlc() is False
