@@ -16,3 +16,17 @@ Open /docs for interactive API documentation and /health for liveness.
     pip install -e ".[db,dev]"
 
 Database migrations and persistence repositories will be introduced in the next milestone. Do not place credentials in source control.
+
+
+## PostgreSQL local
+
+From the repository root, start PostgreSQL:
+
+    docker compose up -d postgres
+
+From the backend directory, install database dependencies and apply migrations:
+
+    pip install -e ".[db,dev]"
+    alembic -c alembic.ini upgrade head
+
+Set DATABASE_URL to the connection string shown in the root .env.example. The committed credentials are for local development only; use generated secrets in hosted environments.
