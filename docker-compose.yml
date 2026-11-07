@@ -1,0 +1,21 @@
+services:
+  postgres:
+    image: postgres:16-alpine
+    container_name: market-signal-postgres
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: market_signal
+      POSTGRES_USER: market_signal
+      POSTGRES_PASSWORD: market_signal_dev
+    ports:
+      - "5432:5432"
+    volumes:
+      - market_signal_pgdata:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U market_signal -d market_signal"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
+volumes:
+  market_signal_pgdata:
