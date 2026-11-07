@@ -24,7 +24,11 @@ jobs:
           cd backend
           python -m pip install --upgrade pip
           pip install -e ".[db,dev]"
+      - name: Validate database model metadata
+        run: |
+          cd backend
+          python -c "from app.db import models; from app.db.base import Base; assert len(Base.metadata.tables) == 4"
       - name: Run tests
         run: |
           cd backend
-          python -c "from app.db import models; from app.db.base import Base; assert len(Base.metadata.tables) == 4"\n          pytest -q
+          pytest -q
