@@ -7,6 +7,7 @@ from pydantic import BaseModel, ConfigDict, Field
 class MarketGroup(StrEnum):
     FOREX = "forex"
     CRYPTO = "crypto"
+    COMMODITIES = "commodities"
     VOLATILITY = "volatility"
     DERIV_SYNTHETIC = "deriv_synthetic"
 
