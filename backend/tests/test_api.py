@@ -56,3 +56,61 @@ def test_candle_ohlc_integrity():
     )
     assert valid.validate_ohlc() is True
     assert invalid.validate_ohlc() is False
+
+
+def test_data_quality_accepts_fresh_consistent_batch():
+    from datetime import UTC, datetime, timedelta
+
+    from app.data_engine.provider import MarketDataBatch
+    from app.data_engine.quality import validate_batch
+    from app.domain.market import Candle
+
+    now = datetime.now(UTC)
+    candle = Candle(
+        symbol="EURUSD",
+        timeframe="1h",
+        timestamp=now - timedelta(minutes=1),
+        open=1.08,
+        high=1.10,
+        low=1.07,
+        close=1.09,
+    )
+    batch = MarketDataBatch(
+        provider="unit-test",
+        symbol="EURUSD",
+        timeframe="1h",
+        fetched_at=now,
+        candles=[candle],
+    )
+    result = validate_batch(batch, max_age=timedelta(minutes=3), now=now)
+    assert result.accepted is True
+    assert len(result.accepted_candles) == 1
+
+
+def test_data_quality_rejects_stale_batch():
+    from datetime import UTC, datetime, timedelta
+
+    from app.data_engine.provider import MarketDataBatch
+    from app.data_engine.quality import validate_batch
+    from app.domain.market import Candle
+
+    now = datetime.now(UTC)
+    candle = Candle(
+        symbol="EURUSD",
+        timeframe="1h",
+        timestamp=now - timedelta(hours=1),
+        open=1.08,
+        high=1.10,
+        low=1.07,
+        close=1.09,
+    )
+    batch = MarketDataBatch(
+        provider="unit-test",
+        symbol="EURUSD",
+        timeframe="1h",
+        fetched_at=now - timedelta(hours=1),
+        candles=[candle],
+    )
+    result = validate_batch(batch, max_age=timedelta(minutes=3), now=now)
+    assert result.accepted is False
+    assert "Provider batch is stale." in result.reasons
