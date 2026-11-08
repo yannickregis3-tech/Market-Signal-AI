@@ -4,7 +4,6 @@ import pytest
 
 from app.data_engine.deriv import (
     DerivMarketDataProvider,
-    DerivProviderError,
     TIMEFRAME_GRANULARITY,
 )
 
