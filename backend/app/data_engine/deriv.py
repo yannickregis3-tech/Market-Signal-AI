@@ -48,6 +48,29 @@ class DerivMarketDataProvider:
         self._websocket_url = websocket_url
         self._timeout_seconds = timeout_seconds
 
+    async def fetch_active_symbols(self) -> list[dict]:
+        """Return Deriv's active-symbol catalogue for explicit mapping review."""
+        try:
+            async with connect(
+                self._websocket_url,
+                open_timeout=self._timeout_seconds,
+                close_timeout=5,
+            ) as websocket:
+                await websocket.send(json.dumps({"active_symbols": "full", "req_id": 2}))
+                async with asyncio.timeout(self._timeout_seconds):
+                    while True:
+                        payload = json.loads(await websocket.recv())
+                        if payload.get("error"):
+                            message = payload["error"].get("message", "Unknown Deriv error")
+                            raise DerivProviderError(f"Deriv API error: {message}")
+                        if payload.get("msg_type") == "active_symbols":
+                            symbols = payload.get("active_symbols", [])
+                            return [item for item in symbols if isinstance(item, dict)]
+        except TimeoutError as exc:
+            raise DerivProviderError("Timed out while retrieving Deriv active symbols.") from exc
+        except (OSError, json.JSONDecodeError) as exc:
+            raise DerivProviderError(f"Unable to read Deriv symbols: {exc}") from exc
+
     async def fetch_candles(
         self, symbol: str, timeframe: str, limit: int
     ) -> MarketDataBatch:
