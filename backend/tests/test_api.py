@@ -15,7 +15,7 @@ def test_market_catalog_has_all_market_groups():
     response = client.get("/api/v1/markets")
     assert response.status_code == 200
     groups = {item["group"] for item in response.json()}
-    assert {"forex", "crypto", "volatility", "deriv_synthetic"} <= groups
+    assert {"forex", "crypto", "commodities", "volatility", "deriv_synthetic"} <= groups
 
 
 def test_market_catalog_can_filter_by_group():
